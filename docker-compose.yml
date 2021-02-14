@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  log-producer:
+    image: nickolaylaptev/log-producer
+    volumes:
+      - logs:/var/log
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.10.1
+    volumes:
+      - filebeat:/usr/share/filebeat/data
+      - $PWD/configs/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - logs:/var/log
+    environment:
+      - logstash_host="logstash:5000"
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.1
+    ports:
+      - "5000:5000"
+    volumes:
+      - $PWD/configs/pipeline.conf:/usr/share/logstash/pipeline/pipeline.conf
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.1
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+
+volumes:
+  logs:
+  filebeat:
+  elasticsearch:

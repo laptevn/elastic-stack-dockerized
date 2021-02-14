@@ -1,0 +1,16 @@
+filebeat:
+  inputs:
+    - paths:
+        - /var/log/log-producer*.log
+      input_type: log
+      multiline.type: pattern
+      multiline.pattern: '^{$'
+      multiline.negate: true
+      multiline.match: after
+processors:
+  - decode_json_fields:
+      fields: ["message"]
+      target: "entry"
+output:
+  logstash:
+    hosts: ["${logstash_host}"]
